@@ -23,4 +23,6 @@
 	<message key="plugins.generic.fidusWriter.manager.settings.apiKeyRequired">You must enter a valid API key.</message>
 	<message key="plugins.generic.fidusWriter.manager.settings.apiKey">API key</message>
 	<message key="plugins.generic.fidusWriter.manager.settings.apiKeyNotValidated">The specified API URL and key could not be validated. Please double-check both values.</message>
+	<message key="plugins.generic.fidusWriter.redirect">Redirect</message>
+	<message key="plugins.generic.fidusWriter.redirect.description">You are about to be redirected to FidusWriter, an external tool that can be used to compose and edit scholarly content. Please note that although FidusWriter has the ability to save your document back to this journal, it may be hosted on a different server. When you are finished, you will be directed back here to continue the submission process.</message>
 </locale>

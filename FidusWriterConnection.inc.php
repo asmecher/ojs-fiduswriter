@@ -39,6 +39,10 @@ class FidusWriterConnection {
 		curl_setopt($ch, CURLOPT_URL, $this->apiUrl);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array('Expect:'));
 		curl_setopt($ch, CURLOPT_POST, true);
+
+		// Bug #8518 safety work-around
+		if ($this->apiKey[0] == '@') die('CURL parameters may not begin with @.');
+
 		curl_setopt($ch, CURLOPT_POSTFIELDS, array(
 			'apiKey' => $this->apiKey,
 			'op' => 'validate',
@@ -47,6 +51,31 @@ class FidusWriterConnection {
 		if (($result = curl_exec($ch)) === false) return false;
 		curl_close($ch);
 		return ($result === 'OK');
+	}
+
+	/**
+	 * Redirect to FidusWriter for document composition/editing.
+	 * @param $article Article
+	 */
+	function getRedirectToEditParams($article) {
+		import('lib.pkp.classes.security.AccessKeyManager');
+		$accessKeyManager = new AccessKeyManager();
+		$user = Request::getUser();
+
+		$params = array(
+			'op' => 'edit',
+			'articleId' => $article->getId(),
+			'apiUrl' => Request::url(null, 'gateway', 'plugin', array('FidusWriterGatewayPlugin', 'api')),
+			'saveAccessKey' => $accessKeyManager->createKey('FidusWriterSaveContext', $user->getId(), $article->getId(), 1),
+			'redirectUrl' => Request::url(null, null, null, 3, array('articleId' => $article->getId())),
+		);
+		if ($article->getSubmissionFileId()) {
+			// The file already exists
+		} else {
+			// We're composing a new document
+			$params['authorName'] = $user->getFullName();
+		}
+		return $params;
 	}
 }
 

@@ -77,8 +77,7 @@ class FidusWriterSettingsForm extends Form {
 		if (!parent::validate()) return false;
 
 		$plugin =& $this->plugin;
-		$plugin->import('FidusWriterConnection');
-		$fidusWriterConnection = new FidusWriterConnection($this->getData('apiUrl'), $this->getData('apiKey'));
+		$fidusWriterConnection = $plugin->getConnection();
 		if (!$fidusWriterConnection->verifyKey()) {
 			$this->addError('apiKey', __('plugins.generic.fidusWriter.manager.settings.apiKeyNotValidated'));
 			return false;

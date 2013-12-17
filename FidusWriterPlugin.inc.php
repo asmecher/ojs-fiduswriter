@@ -26,6 +26,9 @@ class FidusWriterPlugin extends GenericPlugin {
 	function register($category, $path) {
 		if (parent::register($category, $path)) {
 			if ($this->getEnabled()) {
+				// To register the gateway plugin
+				HookRegistry::register('PluginRegistry::loadCategory', array(&$this, 'callbackLoadCategory'));
+				// To intervene in the submission process
 				HookRegistry::register('authorsubmitstep2form::display',array(&$this, 'authorUploadCallback'));
 			}
 			return true;
@@ -47,6 +50,26 @@ class FidusWriterPlugin extends GenericPlugin {
 	 */
 	function getDescription() {
 		return __('plugins.generic.fidusWriter.description');
+	}
+
+	/**
+	 * Register as a gateway plugin, even though this is a generic plugin.
+	 * This will allow the plugin to behave as a gateway plugin, i.e. to
+	 * respond to URL requests.
+	 * @param $hookName string
+	 * @param $args array
+	 */
+	function callbackLoadCategory($hookName, $args) {
+		$category =& $args[0];
+		$plugins =& $args[1];
+		switch ($category) {
+			case 'gateways':
+				$this->import('FidusWriterGatewayPlugin');
+				$gatewayPlugin = new FidusWriterGatewayPlugin($this->getName());
+				$plugins[$gatewayPlugin->getSeq()][$gatewayPlugin->getPluginPath()] =& $gatewayPlugin;
+				break;
+		}
+		return false;
 	}
 
 	/**
@@ -133,10 +156,28 @@ class FidusWriterPlugin extends GenericPlugin {
 	 * @param $params array
 	 */
 	function authorUploadCallback($hookName, $params) {
-		// Interrupt the usual upload process to introduce FidusWriter.
-		// FIXME: unimplemented.
+		$form =& $params[0];
+		$article =& $form->article;
 
-		return false;
+		// Interrupt the usual upload process to introduce FidusWriter.
+		$fidusWriterConnection = $this->getConnection();
+
+		$templateMgr =& TemplateManager::getManager();
+		$templateMgr->assign('apiUrl', $this->getSetting($article->getJournalId(), 'apiUrl'));
+		$templateMgr->assign('formParams', $fidusWriterConnection->getRedirectToEditParams($article));
+		$templateMgr->display($this->getTemplatePath() . '/redirectEditForm.tpl');
+		return true;
+	}
+
+	/**
+	 * Get a connection to FidusWriter.
+	 * @return FidusWriterConnection
+	 */
+	function getConnection() {
+		$this->import('FidusWriterConnection');
+		$request = Application::getRequest();
+		$journal = $request->getJournal();
+		return new FidusWriterConnection($this->getSetting($journal->getId(), 'apiUrl'), $this->getSetting($journal->getId(), 'apiKey'));
 	}
 }
 
