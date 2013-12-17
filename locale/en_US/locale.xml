@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE locale SYSTEM "../../../../../lib/pkp/dtd/locale.dtd">
+
+<!--
+  * plugins/generic/fidusWriter/locale/en_US/locale.xml
+  *
+  * Copyright (c) 2013 Simon Fraser University Library
+  * Copyright (c) 2003-2013 John Willinsky
+  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+  *
+  * Localization strings
+  -->
+ 
+<locale name="en_US" full_name="U.S. English">
+	<message key="plugins.generic.fidusWriter.name">FidusWriter Plugin</message>
+	<message key="plugins.generic.fidusWriter.description"><![CDATA[This plugin permits the integration of <a href="http://www.fiduswriter.org">FidusWriter</a> as a content editor for submission documents.]]></message>
+	<message key="plugins.generic.fidusWriter.manager.settings">Settings</message>
+	<message key="plugins.generic.fidusWriter.manager.fidusWriterSettings">FidusWriter Settings</message>
+	<message key="plugins.generic.fidusWriter.manager.settings.description">Use the following form to configure your OJS installation with the details of a FidusWriter installation to which OJS can delegate document creation and editing processes.</message>
+	<message key="plugins.generic.fidusWriter.manager.settings.apiUrl">API URL</message>
+	<message key="plugins.generic.fidusWriter.manager.settings.apiUrlInstructions">The API URL is the base URL that OJS will use to interact with FidusWriter.</message>
+	<message key="plugins.generic.fidusWriter.manager.settings.apiUrlRequired">You must enter a valid API URL.</message>
+	<message key="plugins.generic.fidusWriter.manager.settings.apiKeyRequired">You must enter a valid API key.</message>
+	<message key="plugins.generic.fidusWriter.manager.settings.apiKey">API key</message>
+	<message key="plugins.generic.fidusWriter.manager.settings.apiKeyNotValidated">The specified API URL and key could not be validated. Please double-check both values.</message>
+</locale>
