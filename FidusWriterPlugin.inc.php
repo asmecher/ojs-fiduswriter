@@ -171,13 +171,20 @@ class FidusWriterPlugin extends GenericPlugin {
 
 	/**
 	 * Get a connection to FidusWriter.
+	 * @param $apiUrl string API URL to use (optional; defaults to configured)
+	 * @param $apiKey string API key to use (optional; defaults to configured)
 	 * @return FidusWriterConnection
 	 */
-	function getConnection() {
+	function getConnection($apiUrl = null, $apiKey = null) {
 		$this->import('FidusWriterConnection');
 		$request = Application::getRequest();
 		$journal = $request->getJournal();
-		return new FidusWriterConnection($this->getSetting($journal->getId(), 'apiUrl'), $this->getSetting($journal->getId(), 'apiKey'));
+
+		// If connection params were not supplied, fetch settings
+		if ($apiUrl===null) $apiUrl = $this->getSetting($journal->getId(), 'apiUrl');
+		if ($apiKey===null) $apiKey = $this->getSetting($journal->getId(), 'apiKey'); 
+
+		return new FidusWriterConnection($apiUrl, $apiKey);
 	}
 }
 
