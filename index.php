@@ -1,11 +1,11 @@
 <?php
 
 /**
- * @defgroup plugins_generic_fiduswriter
+ * @defgroup plugins_generic_fiduswriter FidusWriter integration plugin
  */
  
 /**
- * @file plugins/generic/fiduswriter/index.php
+ * @file plugins/generic/fidusWriter/index.php
  *
  * Copyright (c) 2013 Simon Fraser University Library
  * Copyright (c) 2003-2013 John Willinsky
