@@ -102,6 +102,16 @@ class FidusWriterGatewayPlugin extends GatewayPlugin {
 		$journal = Request::getJournal();
 		$article = $articleDao->getArticle(Request::getUserVar('articleId'), $journal->getId());
 
+		$plugin =& $this->getFidusWriterPlugin();
+		$apiUrl = $plugin->getSetting($journal->getId(), 'apiUrl');
+		$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+		if (strpos($apiUrl, $origin)===0) {
+			header('Access-Control-Allow-Origin: ' . $origin);
+			header('Access-Control-Allow-Methods: GET, PUT, POST, DELETE, OPTIONS');
+			header('Access-Control-Max-Age: 1000');
+			header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRFToken');
+		}
+
 		switch (Request::getUserVar('op')) {
 			case 'save':
 				import('lib.pkp.classes.security.AccessKeyManager');
