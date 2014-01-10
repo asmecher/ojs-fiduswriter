@@ -105,17 +105,40 @@ class FidusWriterGatewayPlugin extends GatewayPlugin {
 		$plugin =& $this->getFidusWriterPlugin();
 		$apiUrl = $plugin->getSetting($journal->getId(), 'apiUrl');
 		$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
-		if (strpos($apiUrl, $origin)===0) {
+		if ($origin && strpos($apiUrl, $origin)===0) {
 			header('Access-Control-Allow-Origin: ' . $origin);
 			header('Access-Control-Allow-Methods: GET, PUT, POST, DELETE, OPTIONS');
 			header('Access-Control-Max-Age: 1000');
 			header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRFToken');
 		}
 
+		// Several operations use access keys and article file manager
+		import('lib.pkp.classes.security.AccessKeyManager');
+		$accessKeyManager = new AccessKeyManager();
+		import('classes.file.ArticleFileManager');
+		$articleFileManager = new ArticleFileManager($article->getId());
+
 		switch (Request::getUserVar('op')) {
+			case 'load':
+				$keyHash = $accessKeyManager->generateKeyHash(Request::getUserVar('accessKey'));
+				$accessKey =& $accessKeyManager->validateKey(
+					'FidusWriterLoadContext',
+					$article->getUserId(),
+					$keyHash,
+					$article->getId()
+				);
+				if (!$accessKey) fatalError('Unable to validate access key.');
+
+				// Get the most recent author file.
+				$articleFileDao =& DAORegistry::getDAO('ArticleFileDAO');
+				$revisedArticleFile = $articleFileDao->getArticleFile($article->getRevisedFileId());
+				$submissionArticleFile = $articleFileDao->getArticleFile($article->getSubmissionFileId());
+
+				// Use the revised file if available; fall back on submission version
+				$articleFile = $revisedArticleFile?$revisedArticleFile:$submissionArticleFile;
+				$articleFileManager->downloadFile($articleFile->getFileId(), $articleFile->getRevision());
+				break;
 			case 'save':
-				import('lib.pkp.classes.security.AccessKeyManager');
-				$accessKeyManager = new AccessKeyManager();
 				$keyHash = $accessKeyManager->generateKeyHash(Request::getUserVar('accessKey'));
 				$accessKey =& $accessKeyManager->validateKey(
 					'FidusWriterSaveContext',
@@ -126,21 +149,29 @@ class FidusWriterGatewayPlugin extends GatewayPlugin {
 				if (!$accessKey) fatalError('Unable to validate access key.');
 
 				// Verify and upload the file.
-				import('classes.file.ArticleFileManager');
-				$articleFileManager = new ArticleFileManager($article->getId());
 				if (!$articleFileManager->uploadedFileExists('file')) {
 					fatalError('No file uploaded');
 				}
 
-				$submissionFileId = $articleFileManager->uploadSubmissionFile('file', $article->getSubmissionFileId(), true);
-				if (!$submissionFileId) fatalError('Could not upload file!');
-				$article->setSubmissionFileId($submissionFileId);
-				$article->setSubmissionProgress(3);
-				$article->setTitle(Request::getUserVar('title'), $article->getLocale());
-				$article->setAbstract(Request::getUserVar('abstract'), $article->getLocale());
+				if ($article->getSubmissionProgress()) {
+					// This is the submission process
+					$submissionFileId = $articleFileManager->uploadSubmissionFile('file', $article->getSubmissionFileId(), true);
+					if (!$submissionFileId) fatalError('Could not upload file!');
+					$article->setSubmissionFileId($submissionFileId);
+					$article->setSubmissionProgress(3);
+					$article->setTitle(Request::getUserVar('title'), $article->getLocale());
+					$article->setAbstract(Request::getUserVar('abstract'), $article->getLocale());
+				} else {
+					// This is the submission process
+					$editorDecisionFileId = $articleFileManager->uploadEditorDecisionFile('file', $article->getRevisedFileId());
+					if (!$editorDecisionFileId) fatalError('Could not upload file!');
+					$article->setRevisedFileId($editorDecisionFileId);
+				}
+
 				$articleDao->updateArticle($article);
 				echo 'OK';
 				break;
+			default: fatalError('Unknown operation.');
 		}
 		return true;
 	}

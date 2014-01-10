@@ -66,6 +66,7 @@ class FidusWriterConnection {
 			'op' => 'edit',
 			'articleId' => $article->getId(),
 			'apiUrl' => Request::url(null, 'gateway', 'plugin', array('FidusWriterGatewayPlugin', 'api')),
+			'loadAccessKey' => $accessKeyManager->createKey('FidusWriterLoadContext', $user->getId(), $article->getId(), 1),
 			'saveAccessKey' => $accessKeyManager->createKey('FidusWriterSaveContext', $user->getId(), $article->getId(), 1),
 			'redirectUrl' => Request::url(null, null, null, 3, array('articleId' => $article->getId())),
 		);

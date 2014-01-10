@@ -30,6 +30,8 @@ class FidusWriterPlugin extends GenericPlugin {
 				HookRegistry::register('PluginRegistry::loadCategory', array(&$this, 'callbackLoadCategory'));
 				// To intervene in the submission process
 				HookRegistry::register('authorsubmitstep2form::display',array(&$this, 'authorUploadCallback'));
+				// To intervene in template construction
+				HookRegistry::register('TemplateManager::include', array(&$this, 'includeTemplateCallback'));
 			}
 			return true;
 		}
@@ -167,6 +169,26 @@ class FidusWriterPlugin extends GenericPlugin {
 		$templateMgr->assign('formParams', $fidusWriterConnection->getRedirectToEditParams($article));
 		$templateMgr->display($this->getTemplatePath() . '/redirectEditForm.tpl');
 		return true;
+	}
+
+	/**
+	 * Display template callback; used to intervene in construction
+	 * of built-in OJS templates e.g. for revision upload process.
+	 */
+	function includeTemplateCallback($hookName, $args) {
+		$smarty =& $args[0];
+		$params =& $args[1];
+		$template = $params['smarty_include_tpl_file'];
+		if ($template == 'author/submission/editorDecision.tpl') {
+			$fidusWriterConnection = $this->getConnection();
+
+			$article = $smarty->get_template_vars('submission');
+			$smarty->assign('apiUrl', $this->getSetting($article->getJournalId(), 'apiUrl'));
+			$smarty->assign('formParams', $fidusWriterConnection->getRedirectToEditParams($article));
+			$smarty->display($this->getTemplatePath() . 'authorEditorDecision.tpl');
+			return true;
+		}
+		return false;
 	}
 
 	/**
