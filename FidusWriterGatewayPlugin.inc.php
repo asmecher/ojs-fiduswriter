@@ -112,6 +112,11 @@ class FidusWriterGatewayPlugin extends GatewayPlugin {
 			header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-CSRFToken');
 		}
 
+		if ('OPTIONS' == $_SERVER['REQUEST_METHOD']) {
+			// Respond to OPTIONS cross-domain post.
+			return true;
+		}
+
 		// Several operations use access keys and article file manager
 		import('lib.pkp.classes.security.AccessKeyManager');
 		$accessKeyManager = new AccessKeyManager();
