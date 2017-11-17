@@ -32,6 +32,7 @@ class FidusWriterPlugin extends GenericPlugin {
 				HookRegistry::register('authorsubmitstep2form::display',array(&$this, 'authorUploadCallback'));
 				// To intervene in template construction
 				HookRegistry::register('TemplateManager::include', array(&$this, 'includeTemplateCallback'));
+				$this->_registerTemplateResource();
 			}
 			return true;
 		}
@@ -52,6 +53,13 @@ class FidusWriterPlugin extends GenericPlugin {
 	 */
 	function getDescription() {
 		return __('plugins.generic.fidusWriter.description');
+	}
+
+	/**
+	 * @copydoc Plugin::getTemplatePath()
+	 */
+	function getTemplatePath($inCore = false) {
+		return $this->getTemplateResourceName() . ':';
 	}
 
 	/**
@@ -167,7 +175,7 @@ class FidusWriterPlugin extends GenericPlugin {
 		$templateMgr =& TemplateManager::getManager();
 		$templateMgr->assign('apiUrl', $this->getSetting($article->getJournalId(), 'apiUrl'));
 		$templateMgr->assign('formParams', $fidusWriterConnection->getRedirectToEditParams($article));
-		$templateMgr->display($this->getTemplatePath() . '/redirectEditForm.tpl');
+		$templateMgr->display($this->getTemplatePath() . 'redirectEditForm.tpl');
 		return true;
 	}
 
@@ -204,7 +212,7 @@ class FidusWriterPlugin extends GenericPlugin {
 
 		// If connection params were not supplied, fetch settings
 		if ($apiUrl===null) $apiUrl = $this->getSetting($journal->getId(), 'apiUrl');
-		if ($apiKey===null) $apiKey = $this->getSetting($journal->getId(), 'apiKey'); 
+		if ($apiKey===null) $apiKey = $this->getSetting($journal->getId(), 'apiKey');
 
 		return new FidusWriterConnection($apiUrl, $apiKey);
 	}
